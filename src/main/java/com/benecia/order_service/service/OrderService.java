@@ -2,6 +2,7 @@ package com.benecia.order_service.service;
 
 import com.benecia.order_service.dto.CreateOrderRequest;
 import com.benecia.order_service.dto.OrderResponse;
+import com.benecia.order_service.repository.OrderEntity;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,5 +20,9 @@ public class OrderService {
 
     public List<OrderResponse> getOrdersByUserId(String userId) {
         return orderReader.getOrdersByUserId(userId);
+    }
+
+    public void cancelOrder(Long orderId) {
+        orderWriter.cancelOrder(orderId);
     }
 }

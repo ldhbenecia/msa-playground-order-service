@@ -1,6 +1,8 @@
 package com.benecia.order_service.service;
 
 import com.benecia.order_service.client.UserClient;
+import com.benecia.order_service.common.AppException;
+import com.benecia.order_service.common.ErrorCode;
 import com.benecia.order_service.dto.CreateOrderRequest;
 import com.benecia.order_service.dto.OrderResponse;
 import com.benecia.order_service.repository.OrderEntity;
@@ -10,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Component
@@ -19,6 +22,7 @@ public class OrderWriter {
     private final OrderJpaRepository orderJpaRepository;
     private final StreamBridge streamBridge;
 
+    @Transactional
     public OrderResponse createOrder(CreateOrderRequest request) {
         OrderEntity orderEntity = new OrderEntity(
                 request.productId(),
@@ -49,5 +53,15 @@ public class OrderWriter {
         }
 
         return response;
+    }
+
+    @Transactional
+    public void cancelOrder(Long orderId) {
+        OrderEntity orderEntity = orderJpaRepository.findById(orderId)
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND, "Order not found for orderId: " + orderId));
+
+        orderEntity.cancel();
+
+        log.info("Order status set to CANCELLED for orderId: {}", orderId);
     }
 }
