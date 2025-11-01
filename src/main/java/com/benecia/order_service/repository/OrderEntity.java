@@ -2,6 +2,8 @@ package com.benecia.order_service.repository;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -37,6 +39,10 @@ public class OrderEntity {
     @Column(nullable = false)
     private String userId; // 주문한 사용자 ID (user-service와 연결)
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private OrderStatus status;
+
     @Column(nullable = false, updatable = false, insertable = false)
     @ColumnDefault(value = "CURRENT_TIMESTAMP")
     private LocalDateTime createdAt;
@@ -47,5 +53,10 @@ public class OrderEntity {
         this.unitPrice = unitPrice;
         this.totalPrice = qty * unitPrice;
         this.userId = userId;
+        this.status = OrderStatus.PROCESSING;
+    }
+
+    public void cancel() {
+        this.status = OrderStatus.CANCELLED;
     }
 }
