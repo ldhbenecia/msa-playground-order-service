@@ -46,7 +46,7 @@ public class OrderWriter {
 
         try {
             log.info("Sending order-created event to Kafka: {}", response);
-            streamBridge.send("order-created-out-0", response);
+            streamBridge.send("orderCreated-out-0", response);
             log.info("Event successfully sent to Kafka.");
         } catch (Exception e) {
             log.error("Failed to send order-created event to Kafka", e);
