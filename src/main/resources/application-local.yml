@@ -27,7 +27,7 @@ spring:
 
   cloud:
     function:
-      definition: pointsFailed
+      definition: pointsFailed;stockFailed
     stream:
       kafka:
         binder:
@@ -39,6 +39,10 @@ spring:
 
         pointsFailed-in-0:
           destination: points-failed
+          group: order-service
+
+        stockFailed-in-0:
+          destination: stock-failed
           group: order-service
 
     kubernetes:

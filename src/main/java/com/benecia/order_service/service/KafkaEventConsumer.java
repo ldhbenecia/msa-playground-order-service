@@ -1,6 +1,7 @@
 package com.benecia.order_service.service;
 
 import com.benecia.order_service.dto.PointsFailed;
+import com.benecia.order_service.dto.StockFailed;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,8 +19,15 @@ public class KafkaEventConsumer {
     public Consumer<PointsFailed> pointsFailed() {
         return failedDto -> {
             log.warn("Received points-failed event (SAGA Compensation): {}", failedDto);
+            orderService.cancelOrder(failedDto.orderId(), failedDto.reason());
+        };
+    }
 
-            orderService.cancelOrder(failedDto.orderId());
+    @Bean
+    public Consumer<StockFailed> stockFailed() {
+        return failedDto -> {
+            log.warn("Received stock-failed event: {}", failedDto);
+            orderService.cancelOrder(failedDto.orderId(), failedDto.reason());
         };
     }
 }

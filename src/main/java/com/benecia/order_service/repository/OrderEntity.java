@@ -46,6 +46,9 @@ public class OrderEntity {
     @Column(nullable = false)
     private OrderStatus status;
 
+    @Column
+    private String cancelReason;
+
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -59,7 +62,8 @@ public class OrderEntity {
         this.status = OrderStatus.PROCESSING;
     }
 
-    public void cancel() {
+    public void cancel(String reason) {
         this.status = OrderStatus.CANCELLED;
+        this.cancelReason = reason;
     }
 }
