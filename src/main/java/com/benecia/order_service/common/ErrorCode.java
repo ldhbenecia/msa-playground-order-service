@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 
 public enum ErrorCode {
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "User not found"),
+    ORDER_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Order failed"),
     VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "Validation failed");
 
     private final HttpStatus status;
