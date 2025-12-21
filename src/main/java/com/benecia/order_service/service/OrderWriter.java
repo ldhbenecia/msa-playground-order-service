@@ -4,11 +4,12 @@ import com.benecia.order_service.common.AppException;
 import com.benecia.order_service.common.ErrorCode;
 import com.benecia.order_service.dto.CreateOrderRequest;
 import com.benecia.order_service.dto.OrderResponse;
+import com.benecia.order_service.event.OrderCancelled;
+import com.benecia.order_service.event.OrderCreated;
 import com.benecia.order_service.repository.OrderEntity;
 import com.benecia.order_service.repository.OrderJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,48 +19,54 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrderWriter {
 
     private final OrderJpaRepository orderJpaRepository;
-    private final StreamBridge streamBridge;
+    private final OrderProducer orderProducer;
 
     @Transactional
     public OrderResponse createOrder(CreateOrderRequest request) {
-        OrderEntity orderEntity = new OrderEntity(
-                request.productId(),
-                request.qty(),
-                request.unitPrice(),
-                request.userId()
-        );
-
-        orderJpaRepository.save(orderEntity);
-        log.info("Order saved to DB: {}", orderEntity.getId());
-
-        OrderResponse response = new OrderResponse(
-                orderEntity.getId(),
-                orderEntity.getProductId(),
-                orderEntity.getQty(),
-                orderEntity.getUnitPrice(),
-                orderEntity.getTotalPrice(),
-                orderEntity.getUserId(),
-                orderEntity.getCreatedAt()
-        );
-
         try {
-            log.info("Sending order-created event to Kafka: {}", response);
-            streamBridge.send("orderCreated-out-0", response);
-            log.info("Event successfully sent to Kafka.");
-        } catch (Exception e) {
-            log.error("Failed to send order-created event to Kafka", e);
-        }
+            OrderEntity orderEntity = new OrderEntity(
+                    request.productId(),
+                    request.qty(),
+                    request.unitPrice(),
+                    request.userId()
+            );
 
-        return response;
+            orderJpaRepository.save(orderEntity);
+            log.info("Order saved to DB: {}", orderEntity.getId());
+
+            OrderCreated createdOrder = OrderCreated.from(orderEntity);
+            orderProducer.sendOrderCreated(createdOrder);
+
+            return new OrderResponse(
+                    orderEntity.getId(),
+                    orderEntity.getProductId(),
+                    orderEntity.getQty(),
+                    orderEntity.getUnitPrice(),
+                    orderEntity.getTotalPrice(),
+                    orderEntity.getUserId(),
+                    orderEntity.getCreatedAt()
+            );
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.ORDER_FAILED);
+        }
     }
 
     @Transactional
-    public void cancelOrder(Long orderId, String reason) {
-        OrderEntity orderEntity = orderJpaRepository.findById(orderId)
-                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND, "Order not found for orderId: " + orderId));
+    public void cancelOrderAndBroadcast(Long orderId, String reason) {
+        OrderEntity order = orderJpaRepository.findById(orderId)
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND, "Order not found"));
 
-        orderEntity.cancel(reason);
-
+        order.cancel(reason);
         log.info("Order CANCELLED. Id: {}, Reason: {}", orderId, reason);
+
+        // 취소 방송 송출 (Product는 재고 복구, User는 포인트 환불 수행)
+        OrderCancelled cancelledDto = new OrderCancelled(
+                order.getId(),
+                order.getProductId(),
+                order.getQty(),
+                order.getUserId(),
+                order.getTotalPrice()
+        );
+        orderProducer.sendOrderCancelled(cancelledDto);
     }
 }

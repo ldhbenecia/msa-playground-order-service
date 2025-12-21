@@ -37,6 +37,10 @@ spring:
           destination: order-created
           content-type: application/json
 
+        order-cancelled-out-0:
+          destination: order-cancelled
+          content-type: application/json
+
         pointsFailed-in-0:
           destination: points-failed
           group: order-service
@@ -59,3 +63,13 @@ management:
   metrics:
     tags:
       application: order-service
+
+logging:
+  level:
+    com.benecia: INFO
+    root: INFO
+    org.apache.kafka: WARN
+    org.springframework.kafka: WARN
+    org.springframework.cloud.stream: WARN
+    org.apache.kafka.common.utils.AppInfoParser: ERROR
+    org.apache.kafka.common.metrics: ERROR

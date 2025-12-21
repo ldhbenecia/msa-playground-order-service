@@ -20,8 +20,4 @@ public class OrderService {
     public List<OrderResponse> getOrdersByUserId(String userId) {
         return orderReader.getOrdersByUserId(userId);
     }
-
-    public void cancelOrder(Long orderId, String reason) {
-        orderWriter.cancelOrder(orderId, reason);
-    }
 }

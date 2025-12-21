@@ -1,4 +1,4 @@
-package com.benecia.order_service.dto;
+package com.benecia.order_service.event;
 
 public record StockFailed(
         Long orderId,
