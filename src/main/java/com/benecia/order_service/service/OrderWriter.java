@@ -8,6 +8,7 @@ import com.benecia.order_service.event.OrderCancelled;
 import com.benecia.order_service.event.OrderCreated;
 import com.benecia.order_service.repository.OrderEntity;
 import com.benecia.order_service.repository.OrderJpaRepository;
+import com.benecia.order_service.repository.OrderStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -55,6 +56,11 @@ public class OrderWriter {
     public void cancelOrderAndBroadcast(Long orderId, String reason) {
         OrderEntity order = orderJpaRepository.findById(orderId)
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND, "Order not found"));
+
+        if (order.getStatus().equals(OrderStatus.CANCELLED)) {
+            log.warn("Already CANCELLED. orderId: {}", orderId);
+            return;
+        }
 
         order.cancel(reason);
         log.info("Order CANCELLED. Id: {}, Reason: {}", orderId, reason);
