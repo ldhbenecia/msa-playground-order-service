@@ -27,7 +27,7 @@ public class OrderProducer {
     public void sendOrderCancelled(OrderCancelled cancelledDto) {
         try {
             log.info("Sending 'order-cancelled' event for recovery: {}", cancelledDto.orderId());
-            streamBridge.send("order-cancelled-out-0", MessageBuilder.withPayload(cancelledDto).build());
+            streamBridge.send("orderCancelled-out-0", MessageBuilder.withPayload(cancelledDto).build());
         } catch (Exception e) {
             log.error("Failed to send order-cancelled event", e);
         }

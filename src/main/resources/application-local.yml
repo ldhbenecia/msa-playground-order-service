@@ -37,7 +37,7 @@ spring:
           destination: order-created
           content-type: application/json
 
-        order-cancelled-out-0:
+        orderCancelled-out-0:
           destination: order-cancelled
           content-type: application/json
 
