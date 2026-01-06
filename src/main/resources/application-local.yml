@@ -20,19 +20,17 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.MySQL8Dialect
 
-    data:
-      redis:
-        host: localhost
-        port: 6379
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
   cloud:
     function:
       definition: pointsFailed;stockFailed
     stream:
-      kafka:
-        binder:
-          brokers: localhost:9092
       bindings:
+        # Output (DLQ 불필요)
         orderCreated-out-0:
           destination: order-created
           content-type: application/json
@@ -41,13 +39,33 @@ spring:
           destination: order-cancelled
           content-type: application/json
 
+        # Input (여기서 처리하다 죽으면 안 됨 -> DLQ 적용)
         pointsFailed-in-0:
           destination: points-failed
           group: order-service
+          consumer:
+            max-attempts: 3
 
         stockFailed-in-0:
           destination: stock-failed
           group: order-service
+          consumer:
+            max-attempts: 3
+
+      kafka:
+        binder:
+          brokers: localhost:9092
+        bindings:
+          pointsFailed-in-0:
+            consumer:
+              enable-dlq: true
+              dlq-name: points-failed-dlq
+              dlq-partitions: 1
+          stockFailed-in-0:
+            consumer:
+              enable-dlq: true
+              dlq-name: stock-failed-dlq
+              dlq-partitions: 1
 
     kubernetes:
       config:
