@@ -1,6 +1,6 @@
 package com.benecia.order_service.event;
 
-import com.benecia.order_service.repository.OrderEntity;
+import com.benecia.order_service.dto.OrderResponse;
 import java.time.LocalDateTime;
 
 public record OrderCreated(
@@ -13,15 +13,15 @@ public record OrderCreated(
         LocalDateTime createdAt
 ) {
 
-    public static OrderCreated from(OrderEntity orderEntity) {
+    public static OrderCreated from(OrderResponse response) {
         return new OrderCreated(
-                orderEntity.getId(),
-                orderEntity.getProductId(),
-                orderEntity.getQty(),
-                orderEntity.getUnitPrice(),
-                orderEntity.getTotalPrice(),
-                orderEntity.getUserId(),
-                orderEntity.getCreatedAt()
+                response.orderId(),
+                response.productId(),
+                response.qty(),
+                response.unitPrice(),
+                response.totalPrice(),
+                response.userId(),
+                response.createdAt()
         );
     }
 }

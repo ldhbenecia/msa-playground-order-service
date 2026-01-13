@@ -18,15 +18,7 @@ public class OrderReader {
         List<OrderEntity> orderEntities = orderJpaRepository.findByUserId(userId);
 
         return orderEntities.stream()
-                .map(entity -> new OrderResponse(
-                        entity.getId(),
-                        entity.getProductId(),
-                        entity.getQty(),
-                        entity.getUnitPrice(),
-                        entity.getTotalPrice(),
-                        entity.getUserId(),
-                        entity.getCreatedAt()
-                ))
+                .map(OrderResponse::from)
                 .collect(Collectors.toList());
     }
 }
