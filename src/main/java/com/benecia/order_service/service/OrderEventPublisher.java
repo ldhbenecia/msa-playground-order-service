@@ -13,13 +13,13 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class OrderProducer {
+public class OrderEventPublisher {
 
     private final StreamBridge streamBridge;
 
-    public void sendOrderCreated(OrderCreated createdDto) {
+    public void publishOrderCreated(OrderCreated createdDto) {
         try {
-            log.info("Sending 'order-created' event: {}", createdDto.orderId());
+            log.info("📢 Publishing 'order-created' event: {}", createdDto.orderId());
 
             Message<OrderCreated> message = MessageBuilder
                     .withPayload(createdDto)
@@ -32,9 +32,9 @@ public class OrderProducer {
         }
     }
 
-    public void sendOrderCancelled(OrderCancelled cancelledDto) {
+    public void publishOrderCancelled(OrderCancelled cancelledDto) {
         try {
-            log.info("Sending 'order-cancelled' event for recovery: {}", cancelledDto.orderId());
+            log.info("📢 Publishing 'order-cancelled' event: {}", cancelledDto.orderId());
 
             Message<OrderCancelled> message = MessageBuilder
                     .withPayload(cancelledDto)

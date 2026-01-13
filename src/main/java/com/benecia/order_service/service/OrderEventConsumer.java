@@ -11,25 +11,25 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
-public class KafkaEventConsumer {
+public class OrderEventConsumer {
 
-    private final OrderWriter orderWriter;
+    private final OrderService orderService;
 
-    // User 실패 -> 재고 복구 필요 -> 방송
+    // User 서비스 실패 시 (보상 트랜잭션)
     @Bean
     public Consumer<PointsFailed> pointsFailed() {
         return failedDto -> {
-            log.warn("Received points-failed: {}. Cancelling order & Broadcasting.", failedDto);
-            orderWriter.cancelOrderAndBroadcast(failedDto.orderId(), failedDto.reason());
+            log.warn("🚨 Received points-failed: {}. Triggering compensation transaction.", failedDto);
+            orderService.cancelOrder(failedDto.orderId(), failedDto.reason());
         };
     }
 
-    // Product 실패 -> 포인트 환불 필요 -> 방송
+    // Product 서비스 실패 시 (보상 트랜잭션)
     @Bean
     public Consumer<StockFailed> stockFailed() {
         return failedDto -> {
-            log.warn("Received stock-failed: {}. Cancelling order & Broadcasting.", failedDto);
-            orderWriter.cancelOrderAndBroadcast(failedDto.orderId(), failedDto.reason());
+            log.warn("🚨 Received stock-failed: {}. Triggering compensation transaction.", failedDto);
+            orderService.cancelOrder(failedDto.orderId(), failedDto.reason());
         };
     }
 }
